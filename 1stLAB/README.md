@@ -18,7 +18,53 @@
 
 Традиционной частичной зависимости здесь нет, так как существует только один первичный ключ order_id (он не составной). Тем не менее проблемы были решены следующие: контактная информация принадлежала order id, хотя логически принадлежит клиенту (здесь за клиентский ключ можно считать ФИО или почту). Также продуктовые поля (количество, название, цена) принадлежат order id, но логически относятся к составляющей заказа, строке. Разделив сущности, мы устранили такие зависимости.
 
+
 #### 3NF
 Файл - [3NF](https://github.com/danilaercegovac/Data-Base-2026/blob/main/1stLAB/3NF.sql). Создал таблицы categories, addresses. Добавил ключи в таблицы products, orders и наполнил таблицы соответствующей информацией, убрал колонку delivery_address из orders. 
 
 Транзитивных связей здесь не было, в рамках третьего действия мы добавили категорию и идентификатор адресса. Наверное, мы не привели бд к 3 нормальной форме, она уже была третьей после второго действия.
+
+ER-диаграмма - [3NF](https://github.com/danilaercegovac/Data-Base-2026/blob/main/1stLAB/3NF.pulm)
+
+### Часть 3. OLTP-нагрузка на нормализованной схеме
+
+#### Создание заказа
+Файл - [1st OLTP](https://github.com/danilaercegovac/Data-Base-2026/blob/main/1stLAB/1st%20OLTP.sql). Использовал WITH, чтобы уловить возвращённое после INSERT сгенерированный order_id , и использовать в INSERT в таблице order_items. Выход Explain Analyze [здесь](https://github.com/danilaercegovac/Data-Base-2026/blob/main/1stLAB/ExplainInsert.md)
+
+#### Обновление статуса
+Файл - [2nd OLTP](https://github.com/danilaercegovac/Data-Base-2026/blob/main/1stLAB/2nd%20OLTP.sql). Небольшой запрос, решил для одну запись обновить. Выход Explain Analyze [здесь](https://github.com/danilaercegovac/Data-Base-2026/blob/main/1stLAB/ExplainUpdate.md)
+
+#### Получение заказа
+Файл - [3rd OLTP](https://github.com/danilaercegovac/Data-Base-2026/blob/main/1stLAB/3rd%20OLTP.sql). Также, SELECT для одной записи. Выход Explain Analyze [здесь](https://github.com/danilaercegovac/Data-Base-2026/blob/main/1stLAB/ExplainSelect.md)
+
+#### Отчёт «топ-10 товаров»
+Файл - [4th OLTP](https://github.com/danilaercegovac/Data-Base-2026/blob/main/1stLAB/4th%20OLTP.sql). Отобрал первые 10 предметов по обороту. Выход Explain Analyze [здесь](https://github.com/danilaercegovac/Data-Base-2026/blob/main/1stLAB/ExplainTop10.md)
+
+#### Поиск клиента
+Файл - [5th OLTP](https://github.com/danilaercegovac/Data-Base-2026/blob/main/1stLAB/5th%20OLTP.sql). Индекс для имейла закомментарил, так как при создании таблицы указал UNIQUE, то есть индекс уже есть. Создание индекса для ускорения поиска по LIKE/ILIKE потребовал подключить расширение PostgresSQL pg_trgm, который добавляет механизм работы с триграммами. Суть работы механизма такая, что все значения поля делятся на триграммы (значение разбирается на множество трёхсимвольно кусочных строк) и сохраняется информация, где такие триграммы содержаться. Когда происходит поиск типа LIKE/ILIKE, то ищемая строка сама делиться на триграммы и идёт поиск какая триграмма где встречается, далее берутся одинаковые строки, и поиск LIKE/ILIKE сравнивает этих кандидатов. Искал ивана, которого нет. Выход Explain Analyze [здесь](https://github.com/danilaercegovac/Data-Base-2026/blob/main/1stLAB/ExplainIndexEmail.md) для имейла и [здесь](https://github.com/danilaercegovac/Data-Base-2026/blob/main/1stLAB/ExplainIndexName.md) для имени.
+
+### Часть 4. Денормализация
+Файл - [DeNF](https://github.com/danilaercegovac/Data-Base-2026/blob/main/1stLAB/DeNF.sql). 
+#### 4.1. Материализованное представление для отчётов
+Денормализовали таблицу order_items посредством добавление к ней поля исторической цены товара. Оправдано тем, что цены на товар могу меняться, а для анализа нужно понимать исторические цены. Создали материализованное представление, то есть при создании её скрипт в ней произвёлся и сохранился в ней, чтобы далее мы уже к её готовым строкам обращались - так быстрее нежели каждый раз при запросе джонить и считать. Но нужно материализованную вьюху обновлять, например, по расписанию. Выход Explain Analyze [MV](https://github.com/danilaercegovac/Data-Base-2026/blob/main/1stLAB/ExplainMV.md) и [обычного запроса](https://github.com/danilaercegovac/Data-Base-2026/blob/main/1stLAB/ExplainNoMV.md).
+
+#### 4.2. Денормализация в таблицу
+Денормализовал таблицу orders добавлением имени клиента. Может быть также оправдано тем, что имя клиента измененяемо (наверное, лучше не имя, а телефон взять для примера или юзернейм), и нам важно понимать какое историческое имя было. Или оправдать тем, что так быстрее читается. Анамолия может быть такая, что если имя поменяется у клиента, то помимо апдейта в таблице клиента необходимо обновлять также в таблице заказов, но тоже, на усмотрение, и если есть такая цель. Выход Explain Analyze [до](https://github.com/danilaercegovac/Data-Base-2026/blob/main/1stLAB/ExplainJoin.md) и [после](https://github.com/danilaercegovac/Data-Base-2026/blob/main/1stLAB/ExplainNoJoin.md)
+
+
+### Часть 5. Индексы
+Файл - [Index](https://github.com/danilaercegovac/Data-Base-2026/blob/main/1stLAB/Index.sql). Удалил индексы, проверил скорость. Файлы EXPLAIN: [имя](https://github.com/danilaercegovac/Data-Base-2026/blob/main/1stLAB/ExplainNoIndexName.md), [имейл](https://github.com/danilaercegovac/Data-Base-2026/blob/main/1stLAB/ExplainNoIndexEmail.md). Добавил обычный индекс к имени. Обычный индекс помогает, когда известно начало от ищемого. Когда начало неизвестно, то выберается построчный поиск. Файл EXPLAIN [здесь](https://github.com/danilaercegovac/Data-Base-2026/blob/main/1stLAB/ExplainCommonIndexName.md). PS GIN-индекс создан в 3 части.
+
+### Часть 6. Сравнительная таблица OLTP vs OLAP
+
+| Характеристика | OLTP (PostgreSQL) | OLAP (ClickHouse) |
+|----------------|-------------------|--------------------|
+| Модель хранения | строковая | колоночная |
+| Типичный запрос | Короткие, простые транзакции | Сложные аналитические запросы с агрегациями |
+| Нормализация | Высокая: 3NF и выше | Денормализация: плоские таблицы или минимальное число связей |
+| Транзакции | Полная поддержка ACID | Ограниченная поддержка транзакций |
+| Вставка | Построчно | Пакетная |
+| Обновление/удаление | Частые точечные операции | Минимальные или отсутствующие |
+| Масштабирование | Вертикальное | Горизонтальное |
+| Типичный use case | Операционные системы: веб‑приложения, CRM, ERP, банковские транзакции, корзины покупок | Аналитические системы: BI‑отчёты, дашборды, машинное обучение, анализ логов, поведенческая аналитика |
+
