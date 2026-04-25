@@ -1,0 +1,57 @@
+@startuml
+!define TABLE(x) class x << (T,white) >>
+!define SERIAL <<SERIAL>>
+!define INTEGER <<INTEGER>>
+!define TEXT <<TEXT>>
+!define DATE <<DATE>>
+!define NUMERIC <<NUMERIC>>
+!define PK <<PRIMARY KEY>>
+!define FK <<FOREIGN KEY>>
+
+TABLE(customers) {
+  * customer_id : SERIAL PK
+  * name : TEXT NOT NULL
+  * email : TEXT UNIQUE NOT NULL
+  phone : TEXT NULL
+}
+
+TABLE(orders) {
+  * order_id : SERIAL PK
+  * order_date : DATE NOT NULL
+  * customer_id : INTEGER NOT NULL FK
+  * address_id : INTEGER NOT NULL FK
+  * total_amount : NUMERIC NOT NULL
+  * status : TEXT NOT NULL
+}
+
+TABLE(products) {
+  * product_id : SERIAL PK
+  * name : TEXT UNIQUE NOT NULL
+  * price : NUMERIC NOT NULL
+  * category_id : INTEGER NOT NULL FK
+}
+
+TABLE(order_items) {
+  * order_item_id : SERIAL PK
+  * order_id : INTEGER NOT NULL FK
+  * product_id : INTEGER NOT NULL FK
+  * quantity : INTEGER NOT NULL
+}
+
+TABLE(categories) {
+  * category_id : SERIAL PK
+  * name : TEXT UNIQUE NOT NULL
+}
+
+TABLE(addresses) {
+  * address_id : SERIAL PK
+  * address : TEXT UNIQUE NOT NULL
+}
+
+' Связи с указанием REFERENCES
+customers ||--o{ orders : "REFERENCES customers(customer_id)"
+orders ||--o{ order_items : "REFERENCES orders(order_id)"
+products ||--o{ order_items : "REFERENCES products(product_id)"
+categories ||--o{ products : "REFERENCES categories(category_id)"
+addresses ||--o{ orders : "REFERENCES addresses(address_id)"
+@enduml
