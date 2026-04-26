@@ -1,4 +1,4 @@
-# 1 лабораторная работа 
+# 3 лабораторная работа 
 ## Описание работы
 ### Часть 1. ClickHouse Keeper / ZooKeeper
 - *Docker Desktop установлен*
@@ -6,9 +6,10 @@
   - Если возникла проблема при загрузке, может помочь docker system prune - очистит неиспользуемые файлы (осторожно)
 - Создаем директорию mkdir clickhouse-lab -> cd clickhouse-lab
 - Создаём пустой конфигурационный файл докера type nul > docker-compose.yml
-- Создаём директории для конфигов кипера и проверок mkdir keeper -> mkdir checks
+- Создаём директории для конфигов кипера mkdir keeper
 - Открываем .yml через notepad docker-compose.yml и указываем описание сервисов-киперов
-```services:
+```
+services:
   keeper1:
     image: clickhouse/clickhouse-server:latest
     container_name: keeper1
@@ -48,7 +49,8 @@ volumes:
   keeper3-data:
 ```
 - Создаём конфиг для keeper1.xml
-```<clickhouse>
+```
+<clickhouse>
     <keeper_server>
         <tcp_port>9181</tcp_port>
         <server_id>1</server_id>
@@ -85,12 +87,206 @@ volumes:
 - Копируем конфиг 1го кипера для 2го и 3го через
   - copy keeper\keeper1.xml keeper\keeper2.xml
   - copy keeper\keeper1.xml keeper\keeper3.xml
-- Открываем 2ой и 3ий кипер через notepad keeper\keeper2.xml и меняет значение <server_id></server_id> на 2, 3
+- Открываем 2ой и 3ий кипер через notepad keeper\keeper2.xml и меняем значение <server_id></server_id> на 2, 3
 - Запускаем докер docker compose up -d
   - Проверяем живой ли контейнер docker ps, должны быть указаны 1-3 киперы
   - Проверяем работоспособность распределённого Keeper-кластера, то есть что кворум образовался, а именно что киперы договорились кто из них лидер, а кто последователь, они работают сообща
     - Отвечает ли Kepper как сервис docker exec -i keeper1 bash -c "echo ruok | nc localhost 9181". Ожидаем imok
     - Проверяем роль каждого через docker exec -i keeper1 bash -c "echo mntr | nc localhost 9181". Ожидаем, что у двух в zk_server_state будет follower, а у одного leader
-      - [mntr keeper1]()
-      - [mntr keeper2]()
-      - [mntr keeper3]()
+      - [keeper1_health](https://github.com/danilaercegovac/Data-Base-2026/blob/main/3rd%20LAB/checks/keeper1_health.txt)
+      - [keeper2_health](https://github.com/danilaercegovac/Data-Base-2026/blob/main/3rd%20LAB/checks/keeper2_health.txt)
+      - [keeper3_health](https://github.com/danilaercegovac/Data-Base-2026/blob/main/3rd%20LAB/checks/keeper3_health.txt)
+### Часть 2. Реплицированные таблицы
+- Создаём папки для ClickHouse-сервисов
+```
+mkdir clickhouse
+mkdir clickhouse\ch1
+mkdir clickhouse\ch2
+mkdir clickhouse\ch3
+```
+- Добавлякс CLickHouse-сервисы в docker-compose.yml. notepad docker-compose.yml. 
+После киперов в блоке services:
+```
+  ch1:
+    image: clickhouse/clickhouse-server:latest
+    container_name: ch1
+    hostname: ch1
+    volumes:
+      - ./clickhouse/ch1/config.xml:/etc/clickhouse-server/config.d/cluster.xml
+      - ch1-data:/var/lib/clickhouse
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    depends_on:
+      - keeper1
+      - keeper2
+      - keeper3
+
+  ch2:
+    image: clickhouse/clickhouse-server:latest
+    container_name: ch2
+    hostname: ch2
+    volumes:
+      - ./clickhouse/ch2/config.xml:/etc/clickhouse-server/config.d/cluster.xml
+      - ch2-data:/var/lib/clickhouse
+    ports:
+      - "8124:8123"
+      - "9001:9000"
+    depends_on:
+      - keeper1
+      - keeper2
+      - keeper3
+
+  ch3:
+    image: clickhouse/clickhouse-server:latest
+    container_name: ch3
+    hostname: ch3
+    volumes:
+      - ./clickhouse/ch3/config.xml:/etc/clickhouse-server/config.d/cluster.xml
+      - ch3-data:/var/lib/clickhouse
+    ports:
+      - "8125:8123"
+      - "9002:9000"
+    depends_on:
+      - keeper1
+      - keeper2
+      - keeper3
+```
+И в блок volumes
+```
+  ch1-data:
+  ch2-data:
+  ch3-data:
+```
+- Кратко про суть yml и переменных
+  - В целом, yml файл даёт информацию докеру что ему и как запускать в контейнере. В сервисах указываются сервисы, для которых надо будет создать контейнер и обеспечить административные настройки типо имён, портов, способов взаимодействия с докером. В вольюмс создаём/используем хранилища необходимые для сервисов. Хранилища принадлежат не запускаемому контейнеру, они принадлежать докеру, их можно переиспользовать. Хранилище - папка. Кликхаус-сервисы используют хранилища для бд, логов. Киперы используют хранилища для координации, они записывают состояние реплик.
+  - image - образ, который сервис использует
+  - container_name - имя контейнера для Docker, то как мы через докер можем подключиться к сервису-контейнеру
+  - hostname - имя машины внутри Docker-сети/контейнера, то как он представлен для других членов кластера
+  - command. Контейнеры Киперов и Кликхауса отличаются. При указании образа clickhouse/clickhouse-server:latest создаётся по умолчанию контейнер типа ClickHouse Server, а для кипера нужен ClickHouse Keeper. command говорит докеру об этом и направляет на кипер конфиг
+  - volumes. Через volumes мы говорим, что к данному сервису надо подключить файл с компьютера, чтобы далее его предоставлять для ClickHouse. /etc/clickhouse-server/config.d - конфиги, которые читает ClickHouse при запуске
+  - ports. Для Кликхауса порт 8123 для HTTP запросов, 9000 порт для коммуникации между узлами. Порт 9181 Кипера для общения Кликхаус-узлов с ним. Левый порт - порт Windows, то есть наше взаимодействие с сервисом. Правый порт - порт внутри контейнера, то есть в каждом контейнере ClickHouse слушает один порт.
+ - Создаём конфиги для сервисов
+   - notepad clickhouse\ch1\config.xml
+   - Указываем
+```
+<clickhouse>
+    <remote_servers>
+        <lab_cluster>
+            <shard>
+                <replica>
+                    <host>ch1</host>
+                    <port>9000</port>
+                </replica>
+                <replica>
+                    <host>ch2</host>
+                    <port>9000</port>
+                </replica>
+                <replica>
+                    <host>ch3</host>
+                    <port>9000</port>
+                </replica>
+            </shard>
+        </lab_cluster>
+    </remote_servers>
+
+    <zookeeper>
+        <node>
+            <host>keeper1</host>
+            <port>9181</port>
+        </node>
+        <node>
+            <host>keeper2</host>
+            <port>9181</port>
+        </node>
+        <node>
+            <host>keeper3</host>
+            <port>9181</port>
+        </node>
+    </zookeeper>
+
+    <macros>
+        <cluster>lab_cluster</cluster>
+        <shard>shard1</shard>
+        <replica>ch1</replica>
+    </macros>
+</clickhouse>
+```
+  - Копируем для 2го и 3го
+```
+copy clickhouse\ch1\config.xml clickhouse\ch2\config.xml
+copy clickhouse\ch1\config.xml clickhouse\ch3\config.xml
+```
+  - Заменить значение <replica> в <macros> на 2, 3
+- Запускаем докер docker compose up -d. Должны появиться хранилища (вольюны) и сервисы
+- Проверяем docker ps. Должны увидеть киперы и сервисы
+- Подключаемся к кликхаус сервису docker exec -it ch1 clickhouse-client. Ожидаем ch1 :)
+- Пробуем запустить скрипт
+```
+CREATE TABLE events ON CLUSTER lab_cluster
+(
+    event_time DateTime,
+    event_type LowCardinality(String),
+    user_id UInt64,
+    payload String
+)
+ENGINE = ReplicatedMergeTree(
+    '/clickhouse/tables/{shard}/events',
+    '{replica}'
+)
+ORDER BY (event_type, event_time)
+PARTITION BY toYYYYMM(event_time);
+```
+- Возникли проблемы:
+  - Кипер оказался недоступен, узлы не могли связаться с кипером. Он слушал сообщения только внутри себя, внутри своего контейнера
+    - Добавим <listen_host>0.0.0.0</listen_host> в каждый keeper*.xml сразу после <clickhouse>. Так Keeper начнёт принимать подключения изнутри контейнера, из Docker-сети, от других контейнеров
+    - Рестартанём docker compose restart keeper1 keeper2 keeper3 ch1 ch2 ch3
+    - Проверим коммуникацию сервиса с кипером docker exec -it ch1 bash -c "echo ruok | nc keeper1 9181". Ожидаем imok
+  - Кликхаус узлы не могли друг с другом общаться из-за отсутствия авторизации при обращении. Каждый сервис при получения запроса ожидает пользователя, чьи данные сверяет со своими настройками авторизации
+    - Сделаем одинакового default-пользователя на всех трёх узлах
+    - Создадим notepad clickhouse\users.xml с пользователем
+```
+<clickhouse>
+    <users>
+        <default>
+            <password></password>
+            <networks>
+                <ip>::/0</ip>
+            </networks>
+            <profile>default</profile>
+            <quota>default</quota>
+            <access_management>1</access_management>
+        </default>
+    </users>
+</clickhouse>
+```
+- Добавим `- ./clickhouse/users.xml:/etc/clickhouse-server/users.d/users.xml` в docker-compose.yml в каждый ch1/ch2/ch3 в volume
+- Запустим docker compose up -d
+- Подключимся к сервису docker exec -it ch1 clickhouse-client
+- Пробуем запустить скрипт
+```
+CREATE TABLE events ON CLUSTER lab_cluster
+(
+    event_time DateTime,
+    event_type LowCardinality(String),
+    user_id UInt64,
+    payload String
+)
+ENGINE = ReplicatedMergeTree(
+    '/clickhouse/tables/{shard}/events',
+    '{replica}'
+)
+ORDER BY (event_type, event_time)
+PARTITION BY toYYYYMM(event_time);
+```
+- Проверяем, что таблица создалась на трёх репликах. Ожидаем три строки типа ch1 default events ReplicatedMergeTree
+```
+SELECT
+    hostName(),
+    database,
+    name,
+    engine
+FROM clusterAllReplicas('lab_cluster', system.tables)
+WHERE name = 'events';
+```
+- 
