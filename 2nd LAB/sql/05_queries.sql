@@ -49,32 +49,25 @@ LIMIT 100;
 -- Сравнение результата из orders_flat и monthly_sales
 
 -- Запрос из orders_flat (с ручной агрегацией)
-SELECT 
-    toStartOfMonth(month_date) AS month,
-    SUM(total_revenue) AS revenue_flat,
-    SUM(total_quantity) AS quantity_flat,
-    SUM(total_orders) AS orders_flat,
-    SUM(unique_customers) AS customers_flat
-FROM (
-    SELECT 
-        toStartOfMonth(order_date) AS month_date,
-        SUM(line_total) AS total_revenue,
-        SUM(quantity) AS total_quantity,
-        COUNT(DISTINCT order_id) AS total_orders,
-        COUNT(DISTINCT customer_id) AS unique_customers
-    FROM lab.orders_flat
-    GROUP BY month_date, category, region
-) AS subquery
-GROUP BY month
-ORDER BY month;
+SELECT
+    toStartOfMonth(order_date) AS month,
+    category,
+    region,
+    sum(line_total) AS revenue,
+    sum(quantity) AS quantity
+FROM orders_flat
+GROUP BY month, category, region
+ORDER BY month, category, region
+LIMIT 10;
 
 -- Запрос из monthly_sales
-SELECT 
-    toStartOfMonth(month_date) AS month,
-    SUM(total_revenue) AS revenue_aggregated,
-    SUM(total_quantity) AS quantity_aggregated,
-    SUM(total_orders) AS orders_aggregated,
-    SUM(unique_customers) AS customers_aggregated
-FROM lab.monthly_sales
-GROUP BY month
-ORDER BY month;
+SELECT
+    month,
+    category,
+    region,
+    sum(revenue) AS revenue,
+    sum(quantity) AS quantity
+FROM monthly_sales
+GROUP BY month, category, region
+ORDER BY month, category, region
+LIMIT 10;
