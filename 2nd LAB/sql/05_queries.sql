@@ -63,7 +63,6 @@ FROM (
         COUNT(DISTINCT order_id) AS total_orders,
         COUNT(DISTINCT customer_id) AS unique_customers
     FROM lab.orders_flat
-    WHERE order_status = 'delivered'
     GROUP BY month_date, category, region
 ) AS subquery
 GROUP BY month
