@@ -1,0 +1,6 @@
+ ┌─p95_exact─┬─p99_exact─┐
+1. │      3945 │      4820 │
+   └───────────┴───────────┘
+
+1 row in set. Elapsed: 0.303 sec. Processed 1.00 million rows, 16.00 MB (3.30 million rows/s., 52.76 MB/s.)
+Peak memory usage: 104.51 MiB.
