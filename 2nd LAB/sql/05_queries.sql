@@ -41,7 +41,7 @@ SELECT DISTINCT
     COUNT(DISTINCT order_id) AS total_orders,
     SUM(line_total) AS total_spent
 FROM lab.orders_flat
-WHERE customer_email LIKE 'quiet.storm@test.example'
+WHERE customer_email LIKE 'customer2099@mail.com'
 GROUP BY customer_id, customer_name, customer_email
 ORDER BY total_spent DESC
 LIMIT 100;
