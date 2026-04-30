@@ -1,0 +1,14 @@
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - ./config.d:/etc/clickhouse-server/config.d
+      - ./users.d:/etc/clickhouse-server/users.d
+      - clickhouse_data:/var/lib/clickhouse
+
+volumes:
+  clickhouse_data:
