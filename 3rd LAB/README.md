@@ -217,7 +217,7 @@ mkdir clickhouse\ch3
 copy clickhouse\ch1\config.xml clickhouse\ch2\config.xml
 copy clickhouse\ch1\config.xml clickhouse\ch3\config.xml
 ```
-  - Заменить значение <replica> в <macros> на 2, 3
+  - Заменить значение `<replica>` в `<macros>` на 2, 3
 - Запускаем докер docker compose up -d. Должны появиться хранилища (вольюны) и сервисы
 - Проверяем docker ps. Должны увидеть киперы и сервисы
 - Подключаемся к кликхаус сервису docker exec -it ch1 clickhouse-client. Ожидаем ch1 :)
@@ -239,7 +239,7 @@ PARTITION BY toYYYYMM(event_time);
 ```
 - Возникли проблемы:
   - Кипер оказался недоступен, узлы не могли связаться с кипером. Он слушал сообщения только внутри себя, внутри своего контейнера
-    - Добавим <listen_host>0.0.0.0</listen_host> в каждый keeper*.xml сразу после <clickhouse>. Так Keeper начнёт принимать подключения изнутри контейнера, из Docker-сети, от других контейнеров
+    - Добавим <listen_host>0.0.0.0</listen_host> в каждый keeper*.xml сразу после `<clickhouse>`. Так Keeper начнёт принимать подключения изнутри контейнера, из Docker-сети, от других контейнеров
     - Рестартанём docker compose restart keeper1 keeper2 keeper3 ch1 ch2 ch3
     - Проверим коммуникацию сервиса с кипером docker exec -it ch1 bash -c "echo ruok | nc keeper1 9181". Ожидаем imok
   - Кликхаус узлы не могли друг с другом общаться из-за отсутствия авторизации при обращении. Каждый сервис при получения запроса ожидает пользователя, чьи данные сверяет со своими настройками авторизации
