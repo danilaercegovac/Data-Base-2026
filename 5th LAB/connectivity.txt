@@ -1,0 +1,16 @@
+curl -s $M -d "SELECT id, title, WEIGHT() AS w FROM products WHERE MATCH('wireless bluetooth headphones') ORDER BY w DESC LIMIT 10"
++---------------------+---------------------------------------------+------+
+| id                  | title                                       | w    |
++---------------------+---------------------------------------------+------+
+| 7065342866398213889 | Lenovo Wireless Bluetooth Headphones 6513   | 6613 |
+| 7065342866398216889 | Razer Wireless Bluetooth Headphones 7026    | 6613 |
+| 7065342866398210889 | Bose Wireless Bluetooth Headphones 3606     | 6613 |
+| 7065342866398211894 | Asus Wireless Bluetooth Headphones 2854     | 6613 |
+| 7065342866398214894 | Samsung Wireless Bluetooth Headphones 9297  | 6613 |
+| 7065342866398208894 | JBL Wireless Bluetooth Headphones 948       | 6613 |
+| 7065342866398212899 | Razer Wireless Bluetooth Headphones 4181    | 6613 |
+| 7065342866398215899 | Logitech Wireless Bluetooth Headphones 8311 | 6613 |
+| 7065342866398209899 | Philips Wireless Bluetooth Headphones 5657  | 6613 |
+| 7065342866398216904 | Sony Wireless Bluetooth Headphones 6276     | 6613 |
++---------------------+---------------------------------------------+------+
+10 rows in set (0.005 sec)

@@ -1,0 +1,104 @@
+products=# SELECT title, ts_rank(tsv, q) AS rank
+FROM pg_products, to_tsquery('english', 'wireless & bluetooth & headphones') q
+WHERE tsv @@ q
+ORDER BY rank DESC
+LIMIT 10;
+                   title                    |   rank
+--------------------------------------------+-----------
+ JBL Wireless Bluetooth Headphones 948      | 0.6622701
+ Bose Wireless Bluetooth Headphones 3606    | 0.6622701
+ Lenovo Wireless Bluetooth Headphones 6513  | 0.6622701
+ Razer Wireless Bluetooth Headphones 7026   | 0.6622701
+ Asus Wireless Bluetooth Headphones 2854    | 0.6622701
+ Sony Wireless Bluetooth Headphones 2968    | 0.6622701
+ Samsung Wireless Bluetooth Headphones 9297 | 0.6622701
+ JBL Wireless Bluetooth Headphones 948      | 0.6622701
+ Razer Wireless Bluetooth Headphones 4181   | 0.6622701
+ Sony Wireless Bluetooth Headphones 2968    | 0.6622701
+(10 rows)
+
+Time: 14.833 ms
+
+products=# SELECT title, ts_rank(tsv, phraseto_tsquery('english', 'noise cancelling')) AS rank
+FROM pg_products
+WHERE tsv @@ phraseto_tsquery('english', 'noise cancelling')
+LIMIT 10;
+                   title                   |    rank
+-------------------------------------------+------------
+ JBL Webcam HD 2305                        | 0.09910322
+ Logitech Webcam HD 4615                   | 0.09910322
+ Sony Wireless Bluetooth Headphones 2968   | 0.09910322
+ JBL Wireless Bluetooth Headphones 948     | 0.09910322
+ Razer Noise Cancelling Earbuds 1053       | 0.27090096
+ Acer Noise Cancelling Earbuds 8916        | 0.27090096
+ Bose Wireless Bluetooth Headphones 3606   | 0.09910322
+ Lenovo Wireless Bluetooth Headphones 6513 | 0.09910322
+ Razer Wireless Bluetooth Headphones 7026  | 0.09910322
+ Logitech Webcam HD 4615                   | 0.09910322
+(10 rows)
+
+Time: 7.387 ms
+
+products=# SELECT title, ts_rank(tsv, to_tsquery('english', 'portable <-> speaker')) AS rank
+FROM pg_products
+WHERE tsv @@ to_tsquery('english', 'portable <-> speaker')
+LIMIT 10;
+                   title                   |    rank
+-------------------------------------------+------------
+ Sony Wireless Bluetooth Headphones 2968   | 0.09910322
+ JBL Wireless Bluetooth Headphones 948     | 0.09910322
+ LG Portable Bluetooth Speaker 5503        |  0.3294431
+ Asus Portable Bluetooth Speaker 8016      |  0.3294431
+ Bose Wireless Bluetooth Headphones 3606   | 0.09910322
+ Lenovo Wireless Bluetooth Headphones 6513 | 0.09910322
+ Razer Wireless Bluetooth Headphones 7026  | 0.09910322
+ Logitech Portable Bluetooth Speaker 3097  |  0.3294431
+ Sony Portable Bluetooth Speaker 8306      |  0.3294431
+ LG Portable Bluetooth Speaker 9424        |  0.3294431
+(10 rows)
+
+Time: 7.408 ms
+
+products=# SELECT title, price, rating
+FROM pg_products, to_tsquery('english', 'laptop') q
+WHERE tsv @@ q
+  AND price BETWEEN 30000 AND 80000
+  AND rating >= 4.0
+ORDER BY rating DESC
+LIMIT 10;
+            title            |  price   | rating
+-----------------------------+----------+--------
+ Bose Power Bank 7158        | 67563.22 |    5.0
+ Acer Power Bank 545         | 41340.91 |    5.0
+ Logitech Gaming Laptop 2147 | 68392.91 |    5.0
+ Dell USB-C Hub 3786         | 62662.82 |    5.0
+ JBL Gaming Laptop 8403      | 50728.39 |    5.0
+ Lenovo USB-C Hub 621        | 33333.46 |    5.0
+ Anker Gaming Laptop 2272    | 39955.55 |    5.0
+ JBL USB-C Hub 8937          | 43098.53 |    5.0
+ Acer Gaming Laptop 4071     | 49606.12 |    5.0
+ Apple Gaming Laptop 7327    | 40282.20 |    5.0
+(10 rows)
+
+Time: 16.888 ms
+
+products=# SELECT title, tags
+FROM pg_products, to_tsquery('english', 'phone') q
+WHERE tsv @@ q
+  AND tags->>'color' = 'black'
+LIMIT 10;
+         title          |                              tags
+------------------------+-----------------------------------------------------------------
+ HP USB-C Hub 909       | {"color": "black", "material": "fabric", "warranty_years": 3}
+ Dell Phone Case 231    | {"color": "black", "material": "plastic", "warranty_years": 1}
+ Sony Smart Watch 920   | {"color": "black", "material": "aluminum", "warranty_years": 1}
+ Razer Smart Watch 2467 | {"color": "black", "material": "steel", "warranty_years": 3}
+ Razer Phone Case 7074  | {"color": "black", "material": "aluminum", "warranty_years": 2}
+ LG Phone Case 7197     | {"color": "black", "material": "plastic", "warranty_years": 1}
+ LG USB-C Hub 1169      | {"color": "black", "material": "aluminum", "warranty_years": 3}
+ Razer Power Bank 2632  | {"color": "black", "material": "fabric", "warranty_years": 2}
+ HP Smart Watch 850     | {"color": "black", "material": "leather", "warranty_years": 1}
+ Razer USB-C Hub 1371   | {"color": "black", "material": "steel", "warranty_years": 3}
+(10 rows)
+
+Time: 7.654 ms

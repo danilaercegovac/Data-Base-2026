@@ -1,0 +1,16 @@
+curl -s $M -d 'SELECT id, title, WEIGHT() AS w FROM products WHERE MATCH(''\"noise cancelling\"'') LIMIT 10'
++---------------------+----------------------------------------+------+
+| id                  | title                                  | w    |
++---------------------+----------------------------------------+------+
+| 7065342866398213892 | Sony Noise Cancelling Earbuds 1280     | 4608 |
+| 7065342866398216892 | Logitech Noise Cancelling Earbuds 4702 | 4608 |
+| 7065342866398210892 | JBL Noise Cancelling Earbuds 6434      | 4608 |
+| 7065342866398211897 | Logitech Noise Cancelling Earbuds 3687 | 4608 |
+| 7065342866398208897 | Acer Noise Cancelling Earbuds 8916     | 4608 |
+| 7065342866398214897 | Acer Noise Cancelling Earbuds 5718     | 4608 |
+| 7065342866398212902 | Acer Noise Cancelling Earbuds 6116     | 4608 |
+| 7065342866398215902 | HP Noise Cancelling Earbuds 6735       | 4608 |
+| 7065342866398209902 | JBL Noise Cancelling Earbuds 3467      | 4608 |
+| 7065342866398216907 | Bose Noise Cancelling Earbuds 9304     | 4608 |
++---------------------+----------------------------------------+------+
+10 rows in set (0.006 sec)

@@ -1,0 +1,99 @@
+PS C:\Users\r0dex> mysql -h 192.168.0.78 -P 9306 -u root -e "SELECT category, COUNT(*) AS cnt, AVG(price) AS avg_price FROM products WHERE MATCH('gaming') GROUP BY category ORDER BY cnt DESC; SHOW META;"
++---------------+------+----------------+
+| category      | cnt  | avg_price      |
++---------------+------+----------------+
+| Wearables     | 2063 | 75418.91389150 |
+| Gaming        | 2023 | 74689.80153292 |
+| Audio         | 2016 | 76526.74318465 |
+| Cameras       | 2006 | 74892.13010447 |
+| Smart Home    | 2003 | 76326.72493844 |
+| Electronics   | 2002 | 75384.32685991 |
+| Mobile Phones | 1995 | 75596.73146456 |
+| Computers     | 1989 | 75506.78491886 |
+| Accessories   | 1960 | 74327.97222773 |
+| TV & Video    | 1943 | 73985.27867014 |
++---------------+------+----------------+
++----------------+-------+
+| Variable_name  | Value |
++----------------+-------+
+| total          | 10    |
+| total_found    | 10    |
+| total_relation | eq    |
+| time           | 0.007 |
+| keyword[0]     | game  |
+| docs[0]        | 20000 |
+| hits[0]        | 40000 |
++----------------+-------+
+
+===
+
+PS C:\Users\r0dex> mysql -h 192.168.0.78 -P 9306 -u root -e "SELECT id, title, price FROM products WHERE MATCH('gaming') FACET category ORDER BY COUNT(*) DESC FACET brand ORDER BY COUNT(*) DESC; SHOW META;"
++---------------------+-----------------------------+---------------+
+| id                  | title                       | price         |
++---------------------+-----------------------------+---------------+
+| 7065342866398210890 | Samsung Gaming Laptop 494   |   1831.180054 |
+| 7065342866398216890 | Logitech Gaming Laptop 5815 |  40590.769531 |
+| 7065342866398213890 | Acer Gaming Laptop 2956     |  97439.257812 |
+| 7065342866398208895 | Apple Gaming Laptop 4803    | 122706.023438 |
+| 7065342866398214895 | Razer Gaming Laptop 3010    | 137230.171875 |
+| 7065342866398211895 | Dell Gaming Laptop 6099     | 105920.992188 |
+| 7065342866398212900 | JBL Gaming Laptop 1452      | 143872.906250 |
+| 7065342866398209900 | LG Gaming Laptop 4309       |  19702.539062 |
+| 7065342866398215900 | HP Gaming Laptop 4197       |  14619.669922 |
+| 7065342866398213905 | Bose Gaming Laptop 4098     | 116469.382812 |
+| 7065342866398216905 | Samsung Gaming Laptop 3915  | 116922.523438 |
+| 7065342866398210905 | HP Gaming Laptop 2138       |   9374.990234 |
+| 7065342866398211910 | JBL Gaming Laptop 1391      |  86166.132812 |
+| 7065342866398208910 | Dell Gaming Laptop 4222     | 145097.171875 |
+| 7065342866398214910 | Dell Gaming Laptop 4729     |  96025.171875 |
+| 7065342866398209915 | Acer Gaming Laptop 6265     |  32212.660156 |
+| 7065342866398215915 | Logitech Gaming Laptop 2063 | 146561.953125 |
+| 7065342866398212915 | Samsung Gaming Laptop 5271  |  27128.720703 |
+| 7065342866398216920 | Sony Gaming Laptop 5564     |  32710.599609 |
+| 7065342866398213920 | LG Gaming Laptop 9367       |  16843.039062 |
++---------------------+-----------------------------+---------------+
++---------------+----------+
+| category      | count(*) |
++---------------+----------+
+| Wearables     |     2063 |
+| Gaming        |     2023 |
+| Audio         |     2016 |
+| Cameras       |     2006 |
+| Smart Home    |     2003 |
+| Electronics   |     2002 |
+| Mobile Phones |     1995 |
+| Computers     |     1989 |
+| Accessories   |     1960 |
+| TV & Video    |     1943 |
++---------------+----------+
++----------+----------+
+| brand    | count(*) |
++----------+----------+
+| Logitech |     1393 |
+| Lenovo   |     1392 |
+| Acer     |     1371 |
+| Apple    |     1359 |
+| JBL      |     1357 |
+| Sony     |     1351 |
+| HP       |     1341 |
+| Bose     |     1337 |
+| Razer    |     1329 |
+| LG       |     1317 |
+| Asus     |     1304 |
+| Samsung  |     1290 |
+| Philips  |     1290 |
+| Dell     |     1287 |
+| Anker    |     1282 |
++----------+----------+
++----------------+-------+
+| Variable_name  | Value |
++----------------+-------+
+| total          | 20    |
+| total_found    | 20000 |
+| total_relation | eq    |
+| time           | 0.008 |
+| multiplier     | 3     |
+| keyword[0]     | game  |
+| docs[0]        | 20000 |
+| hits[0]        | 40000 |
++----------------+-------+

@@ -1,0 +1,16 @@
+curl -s $M -d 'SELECT id, title, WEIGHT() AS w FROM products WHERE MATCH(''\"portable speaker\"~3'') LIMIT 10'
++---------------------+------------------------------------------+------+
+| id                  | title                                    | w    |
++---------------------+------------------------------------------+------+
+| 7065342866398210893 | Logitech Portable Bluetooth Speaker 3097 | 3614 |
+| 7065342866398216893 | LG Portable Bluetooth Speaker 9424       | 3614 |
+| 7065342866398213893 | Sony Portable Bluetooth Speaker 8306     | 3614 |
+| 7065342866398214898 | Asus Portable Bluetooth Speaker 9515     | 3614 |
+| 7065342866398208898 | LG Portable Bluetooth Speaker 5503       | 3614 |
+| 7065342866398211898 | Sony Portable Bluetooth Speaker 9606     | 3614 |
+| 7065342866398212903 | Logitech Portable Bluetooth Speaker 4434 | 3614 |
+| 7065342866398215903 | Asus Portable Bluetooth Speaker 1945     | 3614 |
+| 7065342866398209903 | Lenovo Portable Bluetooth Speaker 1504   | 3614 |
+| 7065342866398216908 | Acer Portable Bluetooth Speaker 5084     | 3614 |
++---------------------+------------------------------------------+------+
+10 rows in set (0.006 sec)

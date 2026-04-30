@@ -1,0 +1,16 @@
+curl -s $M -d "SELECT id, title, tags FROM products WHERE MATCH('phone') AND tags.color = 'black' LIMIT 10"
++---------------------+-----------------------+------------------------------------------------------------+
+| id                  | title                 | tags                                                       |
++---------------------+-----------------------+------------------------------------------------------------+
+| 7065342866398212894 | Dell Phone Case 231   | {"color":"black","material":"plastic","warranty_years":1}  |
+| 7065342866398215909 | Razer Phone Case 7074 | {"color":"black","material":"aluminum","warranty_years":2} |
+| 7065342866398210914 | LG Phone Case 7197    | {"color":"black","material":"plastic","warranty_years":1}  |
+| 7065342866398211934 | Asus Phone Case 5762  | {"color":"black","material":"aluminum","warranty_years":3} |
+| 7065342866398214949 | Dell Phone Case 8835  | {"color":"black","material":"plastic","warranty_years":3}  |
+| 7065342866398208949 | Razer Phone Case 6683 | {"color":"black","material":"plastic","warranty_years":3}  |
+| 7065342866398208964 | Bose Phone Case 6586  | {"color":"black","material":"fabric","warranty_years":2}   |
+| 7065342866398215984 | HP Phone Case 1223    | {"color":"black","material":"aluminum","warranty_years":3} |
+| 7065342866398216989 | Anker Phone Case 3012 | {"color":"black","material":"fabric","warranty_years":3}   |
+| 7065342866398209999 | HP Phone Case 9907    | {"color":"black","material":"plastic","warranty_years":3}  |
++---------------------+-----------------------+------------------------------------------------------------+
+10 rows in set (0.006 sec)
