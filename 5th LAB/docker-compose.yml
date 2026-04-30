@@ -1,0 +1,29 @@
+services:
+  manticore:
+    image: manticoresearch/manticore:6.3.6
+    container_name: manticore
+    ports:
+      - "9306:9306"
+      - "9308:9308"
+    volumes:
+      - manticore_data:/var/lib/manticore
+    environment:
+      - EXTRA=1
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16
+    container_name: idz5_postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345678
+      POSTGRES_DB: products
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  manticore_data:
+  pg_data:
