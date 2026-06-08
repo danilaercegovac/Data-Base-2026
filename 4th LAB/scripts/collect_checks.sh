@@ -61,7 +61,7 @@ echo "Collecting data distribution info..."
     "
 
     echo
-    echo "=== Check that one user is stored on one shard ==="
+    echo "=== Users placed on more than one host, should be empty ==="
     docker exec -i "$MAIN_CONTAINER" clickhouse-client --query "
     SELECT
         user_id,
@@ -155,33 +155,17 @@ echo "Collecting distributed queries info..."
     "
 } > checks/distributed_queries.txt
 
-echo "Collecting reshard demo info..."
+cat > checks/reshard_demo.txt <<'EOF'
+Третий шард на этом этапе ещё не добавлен.
 
-{
-    echo "=== Rows after adding third shard ==="
-    docker exec -i "$MAIN_CONTAINER" clickhouse-client --query "
-    SELECT
-        hostName() AS host,
-        count() AS rows
-    FROM clusterAllReplicas('cluster_3x2', default.events_local)
-    GROUP BY host
-    ORDER BY host
-    FORMAT PrettyCompact
-    "
-
-    echo
-    echo "=== New rows after adding third shard ==="
-    docker exec -i "$MAIN_CONTAINER" clickhouse-client --query "
-    SELECT
-        hostName() AS host,
-        count() AS new_rows
-    FROM clusterAllReplicas('cluster_3x2', default.events_local)
-    WHERE event_type = 'new_shard_test'
-    GROUP BY host
-    ORDER BY host
-    FORMAT PrettyCompact
-    "
-} > checks/reshard_demo.txt
+После добавления третьего шарда нужно:
+1. обновить конфигурацию cluster.xml;
+2. добавить макросы для новых реплик;
+3. перезапустить docker compose;
+4. пересоздать Distributed-таблицу под cluster_3x2;
+5. вставить новые данные с event_type = 'new_shard_test';
+6. повторно собрать проверку распределения.
+EOF
 
 echo "Done. Results saved to checks/"
 ```
