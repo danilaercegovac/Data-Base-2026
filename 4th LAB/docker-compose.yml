@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+mkdir -p checks
+CONTAINER="${CLICKHOUSE_CONTAINER:-ch-s1-r1}"
+
+{
+    echo '== cluster info =='
+    docker exec -i "$CONTAINER" clickhouse-client --query "SELECT cluster, shard_num, replica_num, host_name, host_address, port FROM system.clusters WHERE cluster = 'cluster_2x2' ORDER BY shard_num, replica_num"
+
+    echo
+    echo '== distributed count =='
+    docker exec -i "$CONTAINER" clickhouse-client --query "SELECT count() AS distributed_rows FROM events_distributed"
+
+    echo
+    echo '== local rows by host =='
+    docker exec -i "$CONTAINER" clickhouse-client --query "SELECT hostName() AS host, count() AS rows FROM clusterAllReplicas('cluster_2x2', default.events_local) GROUP BY host ORDER BY host"
+
+    echo
+    echo '== unique users by host =='
+    docker exec -i "$CONTAINER" clickhouse-client --query "SELECT hostName() AS host, uniq(user_id) AS unique_users, count() AS rows FROM clusterAllReplicas('cluster_2x2', default.events_local) GROUP BY host ORDER BY host"
+
+    echo
+    echo '== max hosts per user =='
+    docker exec -i "$CONTAINER" clickhouse-client --query "SELECT max(hosts_per_user) AS max_hosts_per_user FROM (SELECT user_id, uniq(hostName()) AS hosts_per_user FROM clusterAllReplicas('cluster_2x2', default.events_local) GROUP BY user_id)"
+} > checks/data_distribution.txt
+
+cp checks/data_distribution.txt checks/cluster_info.txt
+
+docker exec -i "$CONTAINER" clickhouse-client < sql/04_queries.sql > checks/distributed_queries.txt
